@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Chat App</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="user-list"></div>
+        <div id="messages"></div>
+
+        <input id="username" placeholder="Enter your name" />
+        <input id="room" placeholder="Enter room (optional)" />
+        <button id="join-btn" onclick="joinChat()">Join Chat</button>
+
+        <div id="chat-box" style="display: none;">
+            <input id="message" placeholder="Type a message" />
+            <button onclick="sendMessage()">Send</button>
+            <button onclick="sendReaction('👍')">👍</button>
+            <button onclick="sendReaction('❤️')">❤️</button>
+            <button onclick="sendReaction('😂')">😂</button>
+            <button onclick="exitChat()">Exit Chat</button>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        function joinChat() {
+            const username = document.getElementById('username').value;
+            const room = document.getElementById('room').value || 'general';
+            if (username) {
+                socket.emit('join', { username, room });
+                document.getElementById('join-btn').style.display = 'none';
+                document.getElementById('chat-box').style.display = 'block';
+            }
+        }
+
+        function sendMessage() {
+            const msg = document.getElementById('message').value;
+            socket.emit('chatMessage', msg);
+            document.getElementById('message').value = '';
+        }
+
+        function sendReaction(reaction) {
+            socket.emit('reaction', reaction);
+        }
+
+        function exitChat() {
+            window.location.reload();
+        }
+
+        socket.on('message', (data) => {
+            const messages = document.getElementById('messages');
+            messages.innerHTML += `<p><strong>${data.user}:</strong> ${data.text}</p>`;
+        });
+
+        socket.on('reaction', (data) => {
+            const messages = document.getElementById('messages');
+            messages.innerHTML += `<p>${data.user} reacted with ${data.reaction}</p>`;
+        });
+
+        socket.on('updateUsers', (users) => {
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = `<h3>Online Users:</h3>${users.map(user => `<p>${user}</p>`).join('')}`;
+        });
+    </script>
+</body>
+</html>
