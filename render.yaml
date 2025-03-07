@@ -1,0 +1,15 @@
+services:
+  - name: ultimate-chat-app
+    type: web
+    runtime: python
+    buildCommand: |
+      pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: FLASK_ENV
+        value: production
+    plan: free
+    regions:
+      - oregon
+    healthCheckPath: /
+    autoDeploy: true
